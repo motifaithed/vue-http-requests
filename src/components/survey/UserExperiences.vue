@@ -6,6 +6,7 @@
         <base-button @click="loadSurvey">Load Submitted Experiences</base-button>
       </div>
       <p v-if="isLoading">Loading...</p>
+      <p v-else-if="error">{{ error }}</p>
        <p v-else-if="!isLoading && (!results || results.length === 0)">There's no data. Start adding one!</p>
       <ul v-else-if="!isLoading && results && results.length > 0">
         <survey-result
@@ -30,15 +31,25 @@ export default {
   data(){
     return{
       results:[],
-      isLoading: false
+      isLoading: false,
+      error: null
     }
   },  
   methods:{
     async loadSurvey(){
       this.isLoading = true;
-      const result = await fetch('https://vue-http-requests-f0f4d-default-rtdb.asia-southeast1.firebasedatabase.app/survey.json');
-      const jsonRes = await result.json();
-      this.isLoading = false;
+      this.error = null;
+      let result;
+      let jsonRes
+      try{
+         result = await fetch('https://vue-http-requests-f0f4d-default-rtdb.asia-southeast1.firebasedatabase.app/survey.json');
+         jsonRes = await result.json();
+         this.isLoading = false;
+      }catch(error){
+        this.isLoading = false;
+        console.log(error);
+        this.error = 'Error in Fetching Data. Please try again later.'
+      }
       const results = [];
       for(const id in jsonRes){
         results.push({
