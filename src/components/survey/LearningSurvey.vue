@@ -26,6 +26,7 @@
           <input type="radio" id="rating-great" value="great" name="rating" v-model="chosenRating" />
           <label for="rating-great">Great</label>
         </div>
+        <p v-if="error">{{ error }}</p>
         <p
           v-if="invalidInput"
         >One or more input fields are invalid. Please check your provided data.</p>
@@ -44,34 +45,44 @@ export default {
       enteredName: '',
       chosenRating: null,
       invalidInput: false,
+      error: null
     };
   },
 
   methods: {
-    submitSurvey() {
+    async submitSurvey() {
       if (this.enteredName === '' || !this.chosenRating) {
         this.invalidInput = true;
         return;
       }
       this.invalidInput = false;
+      this.error =  null;
+      try{
+        const request = await fetch('https://vue-http-requests-f0f4d-default-rtdb.asia-southeast1.firebasedatabase.app/survey.json',{
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+              name: this.enteredName,
+              rating: this.chosenRating
+            })
+          })
 
-
-
-      fetch('https://vue-http-requests-f0f4d-default-rtdb.asia-southeast1.firebasedatabase.app/survey.json',{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json'
-        },
-        body:JSON.stringify({
-          name: this.enteredName,
-          rating: this.chosenRating
-        })
-      })
+          if(request.status !== 201 && request.status !== 200){
+            this.error = 'Unable to save data. Please try again later';
+          }
+      }catch(error){
+        this.error = 'Unable to save data. Please try again later';
+      }
+     
       this.enteredName = '';
       this.chosenRating = null;
     },
   },
 };
+
+
 </script>
 
 <style scoped>
